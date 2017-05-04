@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head><title>bilibili html5 player</title>
+    <meta http-equiv="Content-type" content="text/html;charset=utf-8">
+    <!-- <link rel="stylesheet" type="text/css" href="src/css/jquery-ui.css" /> -->
+    <link rel="stylesheet" type="text/css"
+          href="http://static.hdslb.com/plugins/mCustomScrollbar/jquery.mCustomScrollbar.min.css">
+    <script type="text/javascript" src="http://static.hdslb.com/js/jquery.min.js"></script>
+    <script type="text/javascript" src="http://static.hdslb.com/js/jquery.zclip.min.js"></script>
+    <script type="text/javascript" src="http://static.hdslb.com/js/jquery.qrcode.min.js"></script>
+    <script type="text/javascript"
+            src="http://static.hdslb.com/plugins/mCustomScrollbar/jquery.mCustomScrollbar.concat.min.js"></script>
+    <!-- <script type="text/javascript" src="//static.hdslb.com/js/jquery.xdomainrequest.min.js"></script> -->
+    <script src="bilibiliPlayer_cracked.js"></script>
+    <style type="text/css">html, body, .player {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }</style>
+</head>
+<body>
+<div id="heimu"></div>
+<div class="player">
+    <div id="bilibiliPlayer"></div>
+</div>
+<script type="text/javascript" src="http://activity.hdslb.com/blackboard/activity4127/4127-activity.min.js"></script>
+</body>
+<script type="text/javascript">
+var GetUrlValue = function (e) {
+    var l = new RegExp("(^|&)" + e + "=([^&]*)(&|$)", "i"), a = window.location.search.substr(1).match(l);
+    if (null != a)try {
+        return decodeURIComponent(a[2])
+    } catch (e) {
+        return null
+    }
+    return null
+};
+//GetUrlValue("crossDomain") && (document.domain = "bilibili.com");
+var player = new bilibiliPlayer({
+    aid: GetUrlValue("aid"),
+    cid: GetUrlValue("cid"),
+    autoplay: !!GetUrlValue("autoplay"),
+    as_wide: !!GetUrlValue("as_wide"),
+    player_type: GetUrlValue("player_type") || 0,
+    pre_ad: GetUrlValue("pre_ad") || 0,
+    lastplaytime: GetUrlValue("lastplaytime"),
+    enable_ssl: GetUrlValue("enable_ssl") || 1,
+    extra_params: GetUrlValue("urlparam") ? decodeURIComponent(GetUrlValue("urlparam")) : null,
+    seasonId: GetUrlValue("seasonId"),
+    episodeId: GetUrlValue("episodeId"),
+    pb: GetUrlValue("pb"),
+    b: GetUrlValue("b"),
+    p: GetUrlValue("p") || 1,
+    t: GetUrlValue("t"),
+    d: GetUrlValue("d")
+});
+if (window.parent)try {
+    window.parent.player = player, window.player = player, "function" == typeof window.parent.Html5IframeInitialized && window.parent.Html5IframeInitialized()
+} catch (e) {
+    window.player = player
+}</script>
+</html>
