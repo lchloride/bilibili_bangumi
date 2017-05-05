@@ -1,9 +1,9 @@
 # coding=utf-8
-from finder import Finder
+from finder import PhantomJSFinder
 from downloader import Downloader
-bangumi_url = "https://www.bilibili.com/video/av1965419/"
-finder = Finder(bangumi_url)
-url_list = finder.getVideoURLs()
+bangumi_url = "http://www.bilibili.com/video/av10184012/"
+finder = PhantomJSFinder(bangumi_url)
+url_list = finder.getVideoURLs(True)
 for url in url_list:
     name = url[:url.rfind("?")]
     name = name[url.rfind("/")+1:]
