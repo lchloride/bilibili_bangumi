@@ -1,6 +1,8 @@
 # coding=utf-8
+import argparse
+import json
 
-from selenium import webdriver
+from selenium import webdriver, common
 from config import Config
 from proxy import Proxy
 
@@ -18,8 +20,10 @@ class Anime():
         dcap = dict(webdriver.DesiredCapabilities.PHANTOMJS)
         # Set header of request
         dcap["phantomjs.page.settings.userAgent"] = (
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/53 "
-            "(KHTML, like Gecko) Chrome/15.0.87"
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/57.0.2987.133 "
+            "Safari/537.36"
         )
         # Not to load images
         dcap["phantomjs.page.settings.loadImages"] = False
@@ -37,7 +41,11 @@ class Anime():
         anime_driver.get(url)
 
         print("Resolve information")
-        # print(anime_driver.page_source)
+        try:
+            anime_driver.find_element_by_class_name("main-container-wrapper")
+        except common.exceptions.NoSuchElementException as err:
+            print("Cannot resolve information. It is usually caused by overseas visit.")
+            return {}
 
         bg = anime_driver.find_element_by_xpath('//div[@class="main-inner"]/div[@class="info-content"]/'
                                                  'div[@class="bangumi-preview"]/img').get_property("src")
@@ -173,7 +181,31 @@ class Anime():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Obtain information of anime using its URL."\
+                                     "For other operation, please use corresponding module.")
+    group1 = parser.add_mutually_exclusive_group()
+    group1.add_argument("-j", "--json", action="store_true",
+                        help="Display result in json format.")
+    group1.add_argument("-l", "--list", action="store_true",
+                        help="Display result in list format.")
+    group2 = parser.add_mutually_exclusive_group()
+    group2.add_argument("-rp", "--randproxy", action="store_true",
+                        help="Using random proxy server.")
+    group2.add_argument("-p", "--proxy", action="store", help="Using proxy server with specific index",
+                        metavar="INDEX", type=int)
+    parser.add_argument("URL")
+    args = parser.parse_args()
+
+    print(args)
     anime = Anime()
-    obj = anime.fetch_anime("http://bangumi.bilibili.com/anime/5997")
-    # print(obj)
-    anime.display(obj)
+    if args.proxy is not None:
+        obj = anime.fetch_anime(args.URL, args.proxy)
+    elif args.randproxy:
+        obj = anime.fetch_anime(args.URL, Anime.RANDOM_PROXY)
+    else:
+        obj = anime.fetch_anime(args.URL)
+
+    if args.json:
+        print(json.dumps(obj, ensure_ascii=False))
+    else:
+        anime.display(obj)
