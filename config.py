@@ -13,13 +13,14 @@ class Config:
     __instance = None
 
     def __init__(self):
-        self.cp = ConfigParser()
-        with codecs.open('settings.conf', 'r', encoding='utf-8') as f:
-            self.cp.read_file(f)
+        pass
 
     def __new__(cls, *args, **kwd):
         if Config.__instance is None:
             Config.__instance = object.__new__(cls, *args, **kwd)
+            Config.__instance.cp = ConfigParser()
+            with codecs.open('settings.conf', 'r', encoding='utf-8') as f:
+                Config.__instance.cp.read_file(f)
         return Config.__instance
 
     def get_property(self, section, option):
@@ -34,4 +35,6 @@ class Config:
 
 if __name__ == '__main__':
     conf = Config()
-    print(conf.get_property("path", "exec_path"))
+    conf2 = Config()
+    print(conf.get_property("path", "phantomjs_exec_path"))
+    print(conf2.get_property("path", "phantomjs_exec_path"))
