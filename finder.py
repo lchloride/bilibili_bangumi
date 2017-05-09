@@ -82,6 +82,9 @@ class ChromeFinder(Finder):
                 pass
 
         parameters = bangumi_driver.find_element_by_name("flashvars").get_attribute("value")
+        cookies = []
+        cookies.append(bangumi_driver.get_cookie("buvid3"))
+        cookies.append(bangumi_driver.get_cookie("fts"))
         print("Get URL of player successfully")
         bangumi_driver.close()
 
@@ -108,6 +111,9 @@ class ChromeFinder(Finder):
         player_driver.close()
 
         # Get detailed json of bangumi
+        for cookie in cookies:
+            api_driver.add_cookie(cookie)
+
         api_driver.get(api_url)
         bangumi_json = api_driver.find_element_by_tag_name("body").text
         bangumi_object = json.loads(bangumi_json)
@@ -115,8 +121,13 @@ class ChromeFinder(Finder):
 
         # Return urls
         url_list = []
-        for i in range(len(bangumi_object["durl"])):
-            url_list.append(bangumi_object["durl"][i]["url"])
+        try:
+            for i in range(len(bangumi_object["durl"])):
+                url_list.append(bangumi_object["durl"][i]["url"])
+            return url_list
+        except KeyError as err:
+            print("Cannot resolve bangumi information.")
+            raise err
         return url_list
 
 
@@ -146,21 +157,21 @@ class PhantomJSFinder(Finder):
             proxy = Proxy()
             proxy.load()
             service_args = ['--proxy=' + proxy.get_proxy(proxy_idx), '--proxy-type=http']
-
             # Create drivers (Cost most time)
             bangumi_driver = webdriver.PhantomJS(exec_path, desired_capabilities=dcap, service_args=service_args)
             player_driver = webdriver.PhantomJS(exec_path, desired_capabilities=dcap, service_args=service_args)
-            api_driver = webdriver.PhantomJS(exec_path, service_args=service_args)
+            api_driver = webdriver.PhantomJS(exec_path, desired_capabilities=dcap, service_args=service_args)
         else:
             # Create drivers (Cost most time)
-            bangumi_driver = webdriver.PhantomJS(exec_path)
-            player_driver = webdriver.PhantomJS(executable_path=exec_path)
+            bangumi_driver = webdriver.PhantomJS(exec_path, desired_capabilities=dcap)
+            player_driver = webdriver.PhantomJS(executable_path=exec_path, desired_capabilities=dcap)
             api_driver = webdriver.PhantomJS(executable_path=exec_path, desired_capabilities=dcap)
 
         print("Start to get bangumi page")
 
         # Get URL of player
         bangumi_driver.set_page_load_timeout(int(Config().get_property("time", "page_load_timeout")))
+        bangumi_driver.delete_all_cookies()
         try:
             bangumi_driver.get(bangumi_url)
         except TimeoutException:
@@ -182,6 +193,9 @@ class PhantomJSFinder(Finder):
             print("Get bangumi page successfully", bangumi_driver.current_url)
 
         player_url = bangumi_driver.find_element_by_class_name("bilibiliHtml5Player").get_attribute("src")
+        cookies = []
+        cookies.append(bangumi_driver.get_cookie("buvid3"))
+        cookies.append(bangumi_driver.get_cookie("fts"))
         print("Get URL of player successfully", player_url)
         bangumi_driver.close()
 
@@ -216,6 +230,8 @@ class PhantomJSFinder(Finder):
         player_driver.close()
 
         # Get detailed json of bangumi
+        for cookie in cookies:
+            api_driver.add_cookie(cookie)
         api_driver.get(api_url)
         bangumi_json = api_driver.find_element_by_tag_name("body").text
         bangumi_object = json.loads(bangumi_json)
@@ -227,13 +243,16 @@ class PhantomJSFinder(Finder):
             for i in range(len(bangumi_object["durl"])):
                 url_list.append(bangumi_object["durl"][i]["url"])
         except KeyError as err:
-            print(bangumi_object["message"])
+            print("Cannot resolve bangumi information.")
             raise err
         return url_list
 
 
 if __name__ == '__main__':
     # この番組はエロマンガ先生の第四話：エロマンガ先生です。
+    # この番組はエロマンガ先生の第四話：エロマンガ先生です。
+    # There are two forms of bangumi URL.
+    # One is like "www.bilibili.com/video/av10184012", the other is like "bangumi.bilibili.com/anime/5997/play#103920"
     # finder = ChromeFinder("http://www.bilibili.com/video/av10184012/")
-    finder = PhantomJSFinder("http://bangumi.bilibili.com/anime/5998/play#103895")
-    print(finder.get_video_url(Finder.RANDOM_PROXY))
+    finder = PhantomJSFinder("http://bangumi.bilibili.com/anime/5997/play#103920")
+    print(finder.get_video_url())
