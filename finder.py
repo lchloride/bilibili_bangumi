@@ -25,14 +25,25 @@ class FinderException(BaseException):
         self.args = msg
 
 
-class ChromeFinder:
+class Finder:
+    RANDOM_PROXY = -1
+    NO_PROXY = -2
+
     def __init__(self, bangumi_url=""):
         self.bangumi_url = bangumi_url
 
     def set_bangumi_url(self, bangumi_url):
         self.bangumi_url = bangumi_url
 
-    def getVideoURLs(self, use_proxy=False):
+    def get_video_url(self, proxy_idx=NO_PROXY):
+        pass
+
+
+class ChromeFinder(Finder):
+    def __init__(self, bangumi_url=""):
+        self.bangumi_url = bangumi_url
+
+    def get_video_url(self, proxy_idx=Finder.NO_PROXY):
         bangumi_url = self.bangumi_url
         if bangumi_url == "":
             raise BadURL("Bad bangumi URL")
@@ -40,7 +51,7 @@ class ChromeFinder:
         exec_path = Config().get_property("path", "phantomjs_exec_path")
 
         print("Initializing...")
-        if use_proxy:
+        if proxy_idx != Finder.NO_PROXY:
             chrome_options = webdriver.ChromeOptions()
             proxy = Proxy()
             proxy.load()
@@ -109,44 +120,42 @@ class ChromeFinder:
         return url_list
 
 
-class PhantomJSFinder:
+class PhantomJSFinder(Finder):
     def __init__(self, bangumi_url=""):
         self.bangumi_url = bangumi_url
 
-    def set_bangumi_url(self, bangumi_url):
-        self.bangumi_url = bangumi_url
-
-    def getVideoURLs(self, use_proxy=False):
+    def get_video_url(self, proxy_idx=Finder.NO_PROXY):
         bangumi_url = self.bangumi_url
         if bangumi_url == "":
             raise BadURL("Bad bangumi URL")
 
         exec_path = Config().get_property("path", "phantomjs_exec_path")
         print("Initializing...")
-        if use_proxy:
-            dcap = dict(DesiredCapabilities.PHANTOMJS)
-            # Set header of request
-            dcap["phantomjs.page.settings.userAgent"] = (
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/53 "
-                "(KHTML, like Gecko) Chrome/15.0.87"
-            )
-            # Not to load images
-            dcap["phantomjs.page.settings.loadImages"] = False
 
+        dcap = dict(DesiredCapabilities.PHANTOMJS)
+        # Set header of request
+        dcap["phantomjs.page.settings.userAgent"] = (
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/53 "
+            "(KHTML, like Gecko) Chrome/15.0.87"
+        )
+        # Not to load images
+        dcap["phantomjs.page.settings.loadImages"] = False
+
+        if proxy_idx != self.NO_PROXY:
             # Set proxy which is randomly chosen from proxy list
             proxy = Proxy()
             proxy.load()
-            service_args = ['--proxy=' + proxy.get_proxy(), '--proxy-type=http']
+            service_args = ['--proxy=' + proxy.get_proxy(proxy_idx), '--proxy-type=http']
 
-            # Crate drivers (Cost most time)
+            # Create drivers (Cost most time)
             bangumi_driver = webdriver.PhantomJS(exec_path, desired_capabilities=dcap, service_args=service_args)
             player_driver = webdriver.PhantomJS(exec_path, desired_capabilities=dcap, service_args=service_args)
-            api_driver = webdriver.PhantomJS(exec_path, desired_capabilities=dcap, service_args=service_args)
+            api_driver = webdriver.PhantomJS(exec_path, service_args=service_args)
         else:
-            # Crate drivers (Cost most time)
+            # Create drivers (Cost most time)
             bangumi_driver = webdriver.PhantomJS(exec_path)
             player_driver = webdriver.PhantomJS(executable_path=exec_path)
-            api_driver = webdriver.PhantomJS(executable_path=exec_path)
+            api_driver = webdriver.PhantomJS(executable_path=exec_path, desired_capabilities=dcap)
 
         print("Start to get bangumi page")
 
@@ -214,8 +223,12 @@ class PhantomJSFinder:
 
         # Return urls
         url_list = []
-        for i in range(len(bangumi_object["durl"])):
-            url_list.append(bangumi_object["durl"][i]["url"])
+        try:
+            for i in range(len(bangumi_object["durl"])):
+                url_list.append(bangumi_object["durl"][i]["url"])
+        except KeyError as err:
+            print(bangumi_object["message"])
+            raise err
         return url_list
 
 
@@ -223,4 +236,4 @@ if __name__ == '__main__':
     # この番組はエロマンガ先生の第四話：エロマンガ先生です。
     # finder = ChromeFinder("http://www.bilibili.com/video/av10184012/")
     finder = PhantomJSFinder("http://bangumi.bilibili.com/anime/5998/play#103895")
-    print(finder.getVideoURLs(True))
+    print(finder.get_video_url(Finder.RANDOM_PROXY))

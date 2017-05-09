@@ -1,5 +1,5 @@
 # coding=utf-8
-from finder import PhantomJSFinder, ChromeFinder, FinderException
+from finder import Finder, PhantomJSFinder, ChromeFinder, FinderException
 from downloader import Downloader
 from config import Config
 import argparse
@@ -38,38 +38,35 @@ def main():
                         help="Use configuration file. If configuration file is not assigned, default one will be used.",
                         default="settings.conf", metavar="FILE")'''
     args = parser.parse_args()
-
+    print(args)
     if args.fetch is not None:
-        print("fetch")
+        # print("fetch")
         finder = create_finder(args.fetch)
         if args.proxy is not None:
-            print(finder.getVideoURLs(True))
+            print(finder.get_video_url(args.proxy))
+        elif args.randproxy:
+            print(finder.get_video_url(Finder.RANDOM_PROXY))
         else:
-            print(finder.getVideoURLs())
+            print(finder.get_video_url())
     elif args.download is not None:
-        print("download")
+        # print("download")
         name = args.download[:args.download.rfind("?")]
         name = name[args.download.rfind("/") + 1:]
         downloader = Downloader().download(args.download, name)
     elif args.fd is not None:
-        print("fetch & download")
+        # print("fetch & download")
         finder = create_finder(args.fd)
         if args.proxy is not None:
-            url_list = finder.getVideoURLs(True)
+            url_list = finder.get_video_url(args.proxy)
+        elif args.randproxy is not None:
+            url_list = finder.get_video_url(Finder.RANDOM_PROXY)
         else:
-            url_list = finder.getVideoURLs()
+            url_list = finder.get_video_url()
         for url in url_list:
             name = url[:url.rfind("?")]
             name = name[url.rfind("/") + 1:]
             print("Retrieve", name, url)
             Downloader().download(url, name)
-
-    if args.proxy is not None:
-        print("proxy")
-    elif args.randproxy is not None:
-        print("random proxy")
-
-    print(args)
 
 
 if __name__ == '__main__':
