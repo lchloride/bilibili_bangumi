@@ -11,8 +11,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
-from proxy import Proxy, ProxyException
-from config import Config
+from common.proxy import Proxy, ProxyException
+from common.config import Config
 
 
 class BadURL(BaseException):
@@ -22,7 +22,7 @@ class BadURL(BaseException):
 
 class FinderException(BaseException):
     def __init__(self, msg):
-        self.args = msg
+        self.args = [msg]
 
 
 class Finder:
@@ -61,11 +61,15 @@ class ChromeFinder(Finder):
             # options.addArguments("user-data-dir=/path/to/your/custom/profile");
             bangumi_driver = webdriver.Chrome(executable_path="chromedriver.exe",
                                               chrome_options=chrome_options)
+            player_driver = webdriver.Chrome(executable_path="chromedriver.exe",
+                                                chrome_options=chrome_options)
+            api_driver = webdriver.Chrome(executable_path="chromedriver.exe",
+                                             chrome_options=chrome_options)
         else:
-            bangumi_driver = webdriver.Chrome(executable_path="chromedriver.exe", )
+            bangumi_driver = webdriver.Chrome(executable_path="chromedriver.exe")
 
-        player_driver = webdriver.PhantomJS(executable_path=exec_path)
-        api_driver = webdriver.PhantomJS(executable_path=exec_path)
+            player_driver = webdriver.Chrome(executable_path="chromedriver.exe")
+            api_driver = webdriver.Chrome(executable_path="chromedriver.exe")
 
         print("Start to get bangumi page")
 
@@ -93,13 +97,14 @@ class ChromeFinder(Finder):
         player_driver.get("file:///" + os.path.realpath("cracked_player.html").replace('\\', '/') +
                           "?" + parameters)
 
-        time.sleep(2)
+        time.sleep(10)
 
         api_source = player_driver.page_source
         print("Get player page successfully")
 
         idx = api_source.find("""<div id="api_url">""")
         if idx == -1:
+            print(api_source)
             raise BadURL("Bad bangumi api URL")
         else:
             api_source = api_source[idx + 18:]
@@ -111,9 +116,9 @@ class ChromeFinder(Finder):
         player_driver.close()
 
         # Get detailed json of bangumi
+        api_driver.get(api_url)
         for cookie in cookies:
             api_driver.add_cookie(cookie)
-
         api_driver.get(api_url)
         bangumi_json = api_driver.find_element_by_tag_name("body").text
         bangumi_object = json.loads(bangumi_json)
@@ -250,9 +255,8 @@ class PhantomJSFinder(Finder):
 
 if __name__ == '__main__':
     # この番組はエロマンガ先生の第四話：エロマンガ先生です。
-    # この番組はエロマンガ先生の第四話：エロマンガ先生です。
     # There are two forms of bangumi URL.
     # One is like "www.bilibili.com/video/av10184012", the other is like "bangumi.bilibili.com/anime/5997/play#103920"
-    # finder = ChromeFinder("http://www.bilibili.com/video/av10184012/")
-    finder = PhantomJSFinder("http://bangumi.bilibili.com/anime/5997/play#103920")
-    print(finder.get_video_url())
+    finder = ChromeFinder("http://www.bilibili.com/video/av10184012/")
+    # finder = PhantomJSFinder("http://bangumi.bilibili.com/anime/5997/play#103920")
+    print(finder.get_video_url(Finder.RANDOM_PROXY))

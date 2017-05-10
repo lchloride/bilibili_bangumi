@@ -19,7 +19,7 @@ class Config:
         if Config.__instance is None:
             Config.__instance = object.__new__(cls, *args, **kwd)
             Config.__instance.cp = ConfigParser()
-            with codecs.open('settings.conf', 'r', encoding='utf-8') as f:
+            with codecs.open('../settings.conf', 'r', encoding='utf-8') as f:
                 Config.__instance.cp.read_file(f)
         return Config.__instance
 

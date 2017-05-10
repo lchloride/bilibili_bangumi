@@ -1,7 +1,7 @@
 # coding=utf-8
-from finder import Finder, PhantomJSFinder, ChromeFinder, FinderException
-from downloader import Downloader
-from config import Config
+from bangumi.finder import Finder, PhantomJSFinder, ChromeFinder, FinderException
+from bangumi.downloader import Downloader
+from common.config import Config
 import argparse
 
 

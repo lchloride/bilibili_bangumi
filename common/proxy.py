@@ -22,7 +22,7 @@ class Proxy:
             Proxy.__instance.filename = ""
         return Proxy.__instance
 
-    def load(self, filename="proxy.json"):
+    def load(self, filename="../proxy.json"):
         self.__instance.filename = filename
         try:
             fin = open(filename, "r")

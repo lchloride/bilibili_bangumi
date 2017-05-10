@@ -9,9 +9,9 @@ class Downloader:
 
     def download(self, url, name, progess=True):
         if progess:
-            request.urlretrieve(url, name, self.progess_callback)
+            request.urlretrieve(url, "../"+name, self.progess_callback)
         else:
-            request.urlretrieve(url, name)
+            request.urlretrieve(url, "../"+name)
 
     def progess_callback(self, a, b, c):
         '''''回调函数 

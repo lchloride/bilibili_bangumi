@@ -3,8 +3,8 @@ import argparse
 import json
 
 from selenium import webdriver, common
-from config import Config
-from proxy import Proxy
+from common.config import Config
+from common.proxy import Proxy
 
 
 class Anime():
