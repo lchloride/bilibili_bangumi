@@ -257,6 +257,6 @@ if __name__ == '__main__':
     # この番組はエロマンガ先生の第四話：エロマンガ先生です。
     # There are two forms of bangumi URL.
     # One is like "www.bilibili.com/video/av10184012", the other is like "bangumi.bilibili.com/anime/5997/play#103920"
-    finder = ChromeFinder("http://www.bilibili.com/video/av10184012/")
-    # finder = PhantomJSFinder("http://bangumi.bilibili.com/anime/5997/play#103920")
+    # finder = ChromeFinder("http://www.bilibili.com/video/av10184012/")
+    finder = PhantomJSFinder("http://bangumi.bilibili.com/anime/5997/play#103920")
     print(finder.get_video_url(Finder.RANDOM_PROXY))
