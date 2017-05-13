@@ -1,5 +1,5 @@
 # coding=utf-8
-
+import argparse
 import json
 from random import randint
 
@@ -69,8 +69,35 @@ class Proxy:
         fout.write(json_str)
         fout.close()
 
+    def display_all(self):
+        for i, proxy in enumerate(self.proxy_list):
+            print("%d. IP: %s, Port: %s" % (i+1, proxy["ip"], proxy["port"]))
+
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Interfaces of Proxy Operations.")
+    group2 = parser.add_mutually_exclusive_group()
+    group2.add_argument("-a", "--all", action="store_true",
+                        help="Display all proxies.")
+    group2.add_argument("-g", "--get", action="store",
+                        help="Get proxy in the position of INDEX.",
+                        metavar="INDEX", type=int)
+    group2.add_argument("-i", "--insert", action="store",
+                        help="Insert new proxy with IP and port.",
+                        metavar=("IP", "PORT"), type=str, nargs=2)
+    group2.add_argument("-d", "--delete", action="store",
+                        help="Delete proxy with IP and port.",
+                        metavar=("IP", "PORT"), type=str, nargs=2)
+
+    args = parser.parse_args()
+    print(args)
+
     proxy = Proxy()
     proxy.load()
-    print(proxy.get_proxy())
-    proxy.set_proxy('61.191.41.130', 80)
+    if args.all:
+        proxy.display_all()
+    elif args.delete is not None:
+        proxy.delete_proxy(args.delete[0], int(args.delete[1]))
+    elif args.insert is not None:
+        proxy.set_proxy(args.insert[0], int(args.insert[1]))
+    elif args.get is not None:
+        print(proxy.get_proxy(args.get))
