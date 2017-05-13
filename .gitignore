@@ -87,3 +87,14 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+/.git/*
+.gitignore
+/.idea/*
+/__pycache__/*
+*.mp4
+*.flv
+*.log
+*.png
+*.html
+!cracked_player.html

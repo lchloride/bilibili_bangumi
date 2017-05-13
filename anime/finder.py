@@ -232,6 +232,7 @@ class AnimeFinder:
             refined["tag"] = "" # Tag = All
         else:
             refined["tag"] = para["tag"]
+        print(json.dumps(refined))
         return refined
 
     def __read_filter(self):
