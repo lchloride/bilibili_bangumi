@@ -59,17 +59,18 @@ class ChromeFinder(Finder):
             chrome_options.add_argument('--proxy-server=' + proxy_ip)
             # ChromeOptions options = new ChromeOptions();
             # options.addArguments("user-data-dir=/path/to/your/custom/profile");
-            bangumi_driver = webdriver.Chrome(executable_path="chromedriver.exe",
+            exec_path = Config().get_property("path", "chrome_driver_path")
+            bangumi_driver = webdriver.Chrome(executable_path=exec_path,
                                               chrome_options=chrome_options)
-            player_driver = webdriver.Chrome(executable_path="chromedriver.exe",
+            player_driver = webdriver.Chrome(executable_path=exec_path,
                                                 chrome_options=chrome_options)
-            api_driver = webdriver.Chrome(executable_path="chromedriver.exe",
+            api_driver = webdriver.Chrome(executable_path=exec_path,
                                              chrome_options=chrome_options)
         else:
-            bangumi_driver = webdriver.Chrome(executable_path="chromedriver.exe")
+            bangumi_driver = webdriver.Chrome(executable_path=exec_path)
 
-            player_driver = webdriver.Chrome(executable_path="chromedriver.exe")
-            api_driver = webdriver.Chrome(executable_path="chromedriver.exe")
+            player_driver = webdriver.Chrome(executable_path=exec_path)
+            api_driver = webdriver.Chrome(executable_path=exec_path)
 
         print("Start to get bangumi page")
 
@@ -257,6 +258,6 @@ if __name__ == '__main__':
     # この番組はエロマンガ先生の第四話：エロマンガ先生です。
     # There are two forms of bangumi URL.
     # One is like "www.bilibili.com/video/av10184012", the other is like "bangumi.bilibili.com/anime/5997/play#103920"
-    # finder = ChromeFinder("http://www.bilibili.com/video/av10184012/")
-    finder = PhantomJSFinder("http://bangumi.bilibili.com/anime/5997/play#103920")
+    finder = ChromeFinder("http://www.bilibili.com/video/av10184012/")
+    # finder = PhantomJSFinder("https://bangumi.bilibili.com/anime/5997/play#103920")
     print(finder.get_video_url(Finder.RANDOM_PROXY))
