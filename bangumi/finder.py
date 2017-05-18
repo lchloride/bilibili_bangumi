@@ -13,6 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from common.proxy import Proxy, ProxyException
 from common.config import Config
+from common.log import Log
 
 
 class BadURL(BaseException):
@@ -28,9 +29,13 @@ class FinderException(BaseException):
 class Finder:
     RANDOM_PROXY = -1
     NO_PROXY = -2
+    CMD_LINE = 1
+    GUI = 2
 
-    def __init__(self, bangumi_url=""):
+    def __init__(self, bangumi_url="", mode=CMD_LINE):
         self.bangumi_url = bangumi_url
+        self.mode = mode
+        self.log = Log()
 
     def set_bangumi_url(self, bangumi_url):
         self.bangumi_url = bangumi_url
@@ -40,8 +45,8 @@ class Finder:
 
 
 class ChromeFinder(Finder):
-    def __init__(self, bangumi_url=""):
-        self.bangumi_url = bangumi_url
+    '''def __init__(self, bangumi_url=""):
+        self.bangumi_url = bangumi_url'''
 
     def get_video_url(self, proxy_idx=Finder.NO_PROXY):
         bangumi_url = self.bangumi_url
@@ -73,6 +78,7 @@ class ChromeFinder(Finder):
             api_driver = webdriver.Chrome(executable_path=exec_path)
 
         print("Start to get bangumi page")
+        self.log.write_log("Start to get bangumi page", 0x1)
 
         # Get URL of player
         bangumi_driver.set_page_load_timeout(30)
@@ -138,16 +144,17 @@ class ChromeFinder(Finder):
 
 
 class PhantomJSFinder(Finder):
-    def __init__(self, bangumi_url=""):
-        self.bangumi_url = bangumi_url
+    '''def __init__(self, bangumi_url=""):
+        self.bangumi_url = bangumi_url'''
 
     def get_video_url(self, proxy_idx=Finder.NO_PROXY):
         bangumi_url = self.bangumi_url
         if bangumi_url == "":
             raise BadURL("Bad bangumi URL")
 
+        # print("Initializing...")
+        self.log.write_log("Initializing...", self.mode)
         exec_path = Config().get_property("path", "phantomjs_exec_path")
-        print("Initializing...")
 
         dcap = dict(DesiredCapabilities.PHANTOMJS)
         # Set header of request
@@ -173,7 +180,8 @@ class PhantomJSFinder(Finder):
             player_driver = webdriver.PhantomJS(executable_path=exec_path, desired_capabilities=dcap)
             api_driver = webdriver.PhantomJS(executable_path=exec_path, desired_capabilities=dcap)
 
-        print("Start to get bangumi page")
+        # print("Start to get bangumi page")
+        self.log.write_log("Start to get bangumi page", self.mode)
 
         # Get URL of player
         bangumi_driver.set_page_load_timeout(int(Config().get_property("time", "page_load_timeout")))
@@ -182,7 +190,7 @@ class PhantomJSFinder(Finder):
             bangumi_driver.get(bangumi_url)
         except TimeoutException:
             print(bangumi_driver.page_source)
-            bangumi_driver.get_screenshot_as_file("page.png")
+            # bangumi_driver.get_screenshot_as_file("page.png")
             if bangumi_driver.page_source.find('''class="player bilibiliHtml5Player"''') == -1:
                 bangumi_driver.close()
                 raise TimeoutException()
@@ -196,13 +204,15 @@ class PhantomJSFinder(Finder):
             print(bangumi_driver.page_source)
             raise TimeoutException()
         finally:
-            print("Get bangumi page successfully", bangumi_driver.current_url)
+            # print("Get bangumi page successfully", bangumi_driver.current_url)
+            self.log.write_log("Get bangumi page successfully. "+bangumi_driver.current_url, self.mode)
 
         player_url = bangumi_driver.find_element_by_class_name("bilibiliHtml5Player").get_attribute("src")
         cookies = []
         cookies.append(bangumi_driver.get_cookie("buvid3"))
         cookies.append(bangumi_driver.get_cookie("fts"))
-        print("Get URL of player successfully", player_url)
+        # print("Get URL of player successfully", player_url)
+        self.log.write_log("Get URL of player successfully: " + player_url, self.mode)
         bangumi_driver.close()
 
         # Resolve URL of player
@@ -212,19 +222,25 @@ class PhantomJSFinder(Finder):
             return
         else:
             parameters = player_url_list[1]
-            print("Resolve URL of player successfully")
+            # print("Resolve URL of player successfully")
+            self.log.write_log("Resolve URL of player successfully", self.mode)
 
         # Generate api URL by cracked player
-        print("Start to get player page")
-        player_driver.get("file:///" + os.path.realpath("cracked_player.html").replace('\\', '/') +
+        # print("Start to get player page")
+        self.log.write_log("Start to get player page", self.mode)
+        for cookie in cookies:
+            api_driver.add_cookie(cookie)
+        player_driver.get("file:///" + os.path.realpath("../bangumi/cracked_player.html").replace('\\', '/') +
                           "?" + parameters)
         time.sleep(2)
         api_source = player_driver.page_source
-        print("Get player page successfully")
+        # print("Get player page successfully")
+        self.log.write_log("Get player page successfully", self.mode)
 
         # Find URL of api
         idx = api_source.find("""<div id="api_url">""")
         if idx == -1:
+            print(api_source)
             raise BadURL("Bad bangumi api URL")
         else:
             api_source = api_source[idx + 18:]
@@ -232,7 +248,9 @@ class PhantomJSFinder(Finder):
             api_url = api_source[:idx]
 
         api_url = html.parser.unescape(api_url)
-        print("Get URL of api", api_url)
+        # print("Get URL of api", api_url)
+        self.log.write_log("Get URL of api: "+api_url, self.mode)
+
         player_driver.close()
 
         # Get detailed json of bangumi
@@ -251,6 +269,11 @@ class PhantomJSFinder(Finder):
         except KeyError as err:
             print("Cannot resolve bangumi information.")
             raise err
+        self.log.write_log("Fetch video URL(s) successfully.", self.mode)
+        if self.mode == self.GUI:
+            self.log.write_log("Video URL(s):", 0x2)
+            for url in url_list:
+                self.log.write_log(url, 0x2)
         return url_list
 
 

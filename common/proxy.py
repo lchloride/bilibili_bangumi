@@ -69,6 +69,9 @@ class Proxy:
         fout.write(json_str)
         fout.close()
 
+    def get_all_proxy(self):
+        return self.proxy_list
+
     def display_all(self):
         for i, proxy in enumerate(self.proxy_list):
             print("%d. IP: %s, Port: %s" % (i+1, proxy["ip"], proxy["port"]))
