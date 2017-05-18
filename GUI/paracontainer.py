@@ -47,7 +47,7 @@ class ParaContainer:
         self.display_type = self.FETCHVIDEOURL
 
         self.frame.update()
-        left_frame = Frame(self.frame, width=int(self.frame.winfo_width()/2), bg="red", height=50,
+        left_frame = Frame(self.frame, width=int(self.frame.winfo_width()/2), height=50,
                            padx=5)
         left_frame.pack(side=LEFT)
         left_frame.pack_propagate(0)
@@ -62,10 +62,10 @@ class ParaContainer:
         url_label.update()
         self.url_entry = url_entry = Entry(url_frame, width=left_frame.winfo_width()-url_label.winfo_width())
         self.url_entry.pack(side=LEFT, fill=X)
-        exec_btn = Button(left_frame, text="Fetch", command=self.fetch)
+        exec_btn = Button(left_frame, text="Fetch", command=self.__fetch)
         exec_btn.pack(side=BOTTOM)
 
-        right_frame = Frame(self.frame, width=self.frame.winfo_width()/2, bg="blue",padx=5)
+        right_frame = Frame(self.frame, width=self.frame.winfo_width()/2,padx=5)
         right_frame.pack(side=LEFT)
         self.__display_proxy(right_frame)
         right_frame.update()
@@ -104,24 +104,20 @@ class ParaContainer:
         for p in proxy.get_all_proxy():
             proxy_listbox.insert(END, "%s:%d" % (p["ip"], p["port"]))
 
-    def get_proxy(self):
-        print(self.v.get())
+    '''def __get_proxy(self):
         if self.v == 1:
             self.proxy = Proxy().get_proxy()
         elif self.v == 2:
-            print(self.proxy_listbox.focus_get())
-            self.proxy = Proxy().get_proxy(self.proxy_listbox.focus_get())
+            self.proxy = Proxy().get_proxy(self.proxy_listbox.focus_get())'''
 
-    def fetch(self):
+    def __fetch(self):
         url = self.url_entry.get()
         if url == "":
             tkinter.messagebox.showerror("Error", "Should have URL")
             return
         finder = create_finder(url, mode=Finder.GUI)
-        result = ""
-        v = self.v.get()
-        print(v)
 
+        v = self.v.get()
         if v == 0:
             # result = finder.get_video_url()
             th = Thread(target=finder.get_video_url)
@@ -135,7 +131,7 @@ class ParaContainer:
                 return
             else:
                 index = selection_tuple[0]
-            print(index)
+            # print(index)
             # result = finder.get_video_url(index)
             th = Thread(target=finder.get_video_url, args=(index, ))
         th.start()

@@ -12,7 +12,7 @@ class Log(object):
 
     def __init__(self):
         # Log.__instance.string_pool = Queue(max_size)
-        #Log.__instance.handler_list = handler_list
+        # Log.__instance.handler_list = handler_list
         pass
 
     def __new__(cls, *arg, **kwargs):
@@ -47,7 +47,6 @@ class Log(object):
         return Log.__instance
 
     def set_handler(self, handler_list):
-        print(self.__instance, handler_list)
         Log.__instance.handler_list = handler_list
 
 

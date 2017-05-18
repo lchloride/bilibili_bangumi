@@ -1,17 +1,33 @@
 from tkinter import *
 from GUI.paracontainer import ParaContainer
 from common.log import Log
+from common.config import Config
+from common.language import Language
 
 
 class BiliBangumiUI:
+    EN_US = 0
+    ZH_CN = 1
+    langcode = ["EN_US", "ZH_CN"]
+
     def __init__(self):
         log = Log()
-        self.root = root = Tk()
+        try:
+            root = self.root
+        except AttributeError:
+            self.root = root = Tk()
         self.menubar = menubar = Menu(root)
 
         # Setting menu
         self.settingmenu = settingmenu = Menu(menubar, tearoff=0)
         settingmenu.add_command(label="Preference", command=hello)
+        self.langmenu = langmenu = Menu(menubar, tearoff=0)
+        self.lang = IntVar()
+        self.lang.set(int(Config().get_property("parameters", "lang")))
+        for i, l in enumerate(self.langcode):
+            langmenu.add_radiobutton(label=Language().get_string(l, self.langcode[self.lang.get()]),
+                                     variable=self.lang, value=i, command=self.__change_lang)
+        settingmenu.add_cascade(label="Language", menu=langmenu)
         settingmenu.add_separator()
         settingmenu.add_command(label="Exit", command=root.quit)
         menubar.add_cascade(label="Setting", menu=settingmenu)
@@ -65,7 +81,6 @@ class BiliBangumiUI:
         self.listboxframe.pack()
         msgframe.pack()
         log.set_handler([self.listbox])
-        print(log.handler_list)
 
         self.container = ParaContainer(paraframe, self.listbox)
         root.mainloop()
@@ -73,6 +88,12 @@ class BiliBangumiUI:
     def fetch_url(self):
         self.container.display(ParaContainer.FETCHVIDEOURL)
 
+    def __change_lang(self):
+        lang = self.lang.get()
+        print(lang)
+        #if str(lang) == Config().get_property("parameters", "lang"):
+        Config().set_property("parameters", "lang", str(lang))
+        self.__init__()
 
 def hello():
     print("hello!")
