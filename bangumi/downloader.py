@@ -1,5 +1,5 @@
 # coding=utf-8
-
+import os
 from urllib import request
 
 
@@ -9,7 +9,7 @@ class Downloader:
 
     def download(self, url, name, progess=True):
         if progess:
-            request.urlretrieve(url, "../"+name, self.progess_callback)
+            request.urlretrieve(url, os.path.dirname(os.path.dirname(os.path.abspath("downloader.py")))+"\\"+name, self.progess_callback)
         else:
             request.urlretrieve(url, "../"+name)
 
@@ -28,4 +28,5 @@ class Downloader:
 
 
 if __name__ == '__main__':
-    pass
+    Downloader().download('http://cn-bjsj-cc-v-03.acgvideo.com/vg3/f/47/3299010-1-hd.mp4?expires=1496343600&platform=pc&ssig=NBeOMOtPJsv0JlTc_l-ADA&oi=3698530067&nfa=zlb44/URExVDmluh6FGErg==&dynamic=1&hfa=2063801976',
+                          '13989517-1-hd.mp4')

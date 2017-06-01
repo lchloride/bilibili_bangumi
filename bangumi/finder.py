@@ -53,9 +53,9 @@ class ChromeFinder(Finder):
         if bangumi_url == "":
             raise BadURL("Bad bangumi URL")
 
-        exec_path = Config().get_property("path", "phantomjs_exec_path")
+        exec_path = Config().get_property("path", "chrome_driver_path")
 
-        print("Initializing...")
+        self.log.write_log("Initializing...", self.mode)
         if proxy_idx != Finder.NO_PROXY:
             chrome_options = webdriver.ChromeOptions()
             proxy = Proxy()
@@ -77,7 +77,7 @@ class ChromeFinder(Finder):
             player_driver = webdriver.Chrome(executable_path=exec_path)
             api_driver = webdriver.Chrome(executable_path=exec_path)
 
-        print("Start to get bangumi page")
+            self.log.write_log("Start to get bangumi page", self.mode)
         self.log.write_log("Start to get bangumi page", 0x1)
 
         # Get URL of player
@@ -91,23 +91,26 @@ class ChromeFinder(Finder):
                 raise TimeoutException()
             else:
                 pass
+        with open("bangumi.html", "w", encoding="utf-8") as fout:
+            fout.write(bangumi_driver.page_source)
+            fout.close()
 
         parameters = bangumi_driver.find_element_by_name("flashvars").get_attribute("value")
         cookies = []
         cookies.append(bangumi_driver.get_cookie("buvid3"))
         cookies.append(bangumi_driver.get_cookie("fts"))
-        print("Get URL of player successfully")
+        self.log.write_log("Get URL of player successfully", self.mode)
         bangumi_driver.close()
 
         # Generate api URL by cracked player
-        print("Start to get player page")
+        self.log.write_log("Start to get player page", self.mode)
         player_driver.get("file:///" + os.path.realpath("cracked_player.html").replace('\\', '/') +
                           "?" + parameters)
 
         time.sleep(10)
 
         api_source = player_driver.page_source
-        print("Get player page successfully")
+        self.log.write_log("Get player page successfully", self.mode)
 
         idx = api_source.find("""<div id="api_url">""")
         if idx == -1:
@@ -117,7 +120,7 @@ class ChromeFinder(Finder):
             api_source = api_source[idx + 18:]
             idx = api_source.find("</div>")
             api_url = api_source[:idx]
-            print("Get URL of api")
+            self.log.write_log("Get URL of api", self.mode)
 
         api_url = html.parser.unescape(api_url)
         player_driver.close()
@@ -138,7 +141,7 @@ class ChromeFinder(Finder):
                 url_list.append(bangumi_object["durl"][i]["url"])
             return url_list
         except KeyError as err:
-            print("Cannot resolve bangumi information.")
+            self.log.write_log("Cannot resolve bangumi information.", self.mode)
             raise err
         return url_list
 
@@ -158,10 +161,10 @@ class PhantomJSFinder(Finder):
 
         dcap = dict(DesiredCapabilities.PHANTOMJS)
         # Set header of request
-        dcap["phantomjs.page.settings.userAgent"] = (
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/53 "
-            "(KHTML, like Gecko) Chrome/15.0.87"
-        )
+        dcap["phantomjs.page.settings.userAgent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " \
+                                                    "AppleWebKit/537.36 (KHTML, like Gecko) "\
+                                                    "Chrome/58.0.3029.110 Safari/537.36"
+
         # Not to load images
         dcap["phantomjs.page.settings.loadImages"] = False
 
@@ -197,28 +200,59 @@ class PhantomJSFinder(Finder):
             else:
                 pass
 
-        try:
-            element = WebDriverWait(bangumi_driver, 60).until(
-                EC.presence_of_element_located((By.CLASS_NAME, "bilibiliHtml5Player")))
-        except TimeoutException:
-            print(bangumi_driver.page_source)
-            raise TimeoutException()
-        finally:
-            # print("Get bangumi page successfully", bangumi_driver.current_url)
-            self.log.write_log("Get bangumi page successfully. "+bangumi_driver.current_url, self.mode)
+        real_url = bangumi_driver.current_url
+        self.log.write_log("Real URL of this page: "+real_url, self.mode)
 
-        player_url = bangumi_driver.find_element_by_class_name("bilibiliHtml5Player").get_attribute("src")
+        if real_url.find("bangumi.bilibili.com") != -1:
+            # It is a real bangumi page
+            try:
+                element = WebDriverWait(bangumi_driver, 60).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "bilibiliHtml5Player")))
+            except TimeoutException:
+                bangumi_driver.save_screenshot("page.png")
+                with open("bangumi.html", "w", encoding="utf-8") as fout:
+                    fout.write(bangumi_driver.page_source)
+                    fout.close()
+                raise TimeoutException()
+            finally:
+                # print("Get bangumi page successfully", bangumi_driver.current_url)
+                self.log.write_log("Get bangumi page successfully. ", self.mode)
+
+            player_url = bangumi_driver.find_element_by_class_name("bilibiliHtml5Player").get_attribute("src")
+
+
+        else:
+            # It is a normal video page
+            self.log.write_log("Get bangumi page successfully. ", self.mode)
+            # Get av id
+            aid_str = real_url[real_url.find("av")+2:real_url.rfind("/")]
+            # Get comment id of episode series
+            bangumi_driver.get('https://www.bilibili.com/widget/getPageList?aid='+aid_str)
+            index_info = json.loads(bangumi_driver.find_element_by_tag_name("body").text)
+            # Get this video index of episode series
+            page_idx = real_url.rfind("/index_")
+            if page_idx == -1:
+                page_idx = 1
+            else:
+                page_idx = int(real_url[page_idx+7:real_url.rfind(".html")])
+            # Generate player url with cid, aid and pre_ad
+            player_url = ""
+            for page in index_info:
+                if page["page"] == page_idx:
+                    player_url = "prefix?cid=%s&aid=%s&pre_ad=0" % (page["cid"], aid_str)
+                    break
+
+        # print("Get URL of player successfully", player_url)
         cookies = []
         cookies.append(bangumi_driver.get_cookie("buvid3"))
         cookies.append(bangumi_driver.get_cookie("fts"))
-        # print("Get URL of player successfully", player_url)
         self.log.write_log("Get URL of player successfully: " + player_url, self.mode)
         bangumi_driver.close()
 
         # Resolve URL of player
         player_url_list = player_url.split("?")
         if len(player_url_list) != 2:
-            print("Cannot resolve URL of player")
+            self.log.write_log("Cannot resolve URL of player", self.mode)
             return
         else:
             parameters = player_url_list[1]
@@ -267,7 +301,7 @@ class PhantomJSFinder(Finder):
             for i in range(len(bangumi_object["durl"])):
                 url_list.append(bangumi_object["durl"][i]["url"])
         except KeyError as err:
-            print("Cannot resolve bangumi information.")
+            self.log.write_log("Cannot resolve bangumi information.", self.mode)
             raise err
         self.log.write_log("Fetch video URL(s) successfully.", self.mode)
         if self.mode == self.GUI:
@@ -282,5 +316,6 @@ if __name__ == '__main__':
     # There are two forms of bangumi URL.
     # One is like "www.bilibili.com/video/av10184012", the other is like "bangumi.bilibili.com/anime/5997/play#103920"
     # finder = ChromeFinder("http://www.bilibili.com/video/av10184012/")
-    finder = PhantomJSFinder("https://bangumi.bilibili.com/anime/5997/play#103920")
-    print(finder.get_video_url(Finder.RANDOM_PROXY))
+    # finder = PhantomJSFinder("https://bangumi.bilibili.com/anime/5997/play#103920")
+    finder = PhantomJSFinder("https://www.bilibili.com/video/av10184012/")
+    print(finder.get_video_url(Finder.NO_PROXY))
