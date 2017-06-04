@@ -112,7 +112,9 @@ class Anime():
             item["link"] = episode_link.get_attribute("href")
             item["title"] = episode_link.get_attribute("title")
             img_ele = episode_link.find_element_by_tag_name("img")
-            item["image"] = img_ele.get_attribute("src")
+            item["image"] = img_ele.get_attribute("data-img")
+            if item["image"] == "":
+                item["image"] = img_ele.get_attribute("src")
             episodes.append(item)
 
         sponsor = anime_driver.find_element_by_xpath('//div[contains(@class, "sponsor-tosponsor")]'

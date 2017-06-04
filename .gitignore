@@ -96,3 +96,5 @@ ENV/
 *.flv
 *.log
 *.png
+*.html
+!cracked_player.html

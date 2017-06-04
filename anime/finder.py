@@ -33,7 +33,7 @@ class AnimeFinder:
         year = time.strftime('%Y', time.localtime(time.time()))
         month = int(time.strftime('%m', time.localtime(time.time())))
         print("Get animes information of this season (%s %s)." % (year, self.season[month]))
-        timeline_driver.get("http://bangumi.bilibili.com/anime/timeline")
+        timeline_driver.get("https://bangumi.bilibili.com/anime/timeline")
         # print(timeline_driver.page_source)
         date_ele = timeline_driver.find_elements_by_xpath('//ul[@id="bangumi"]/li')
         dates = []
@@ -82,7 +82,7 @@ class AnimeFinder:
         print('Searching for keyword %s...' %keyword)
         para = {"keyword": keyword}
         search_driver.set_page_load_timeout(Config().get_property("time", "page_load_timeout"))
-        search_driver.get("http://search.bilibili.com/bangumi?"+parse.urlencode(para))
+        search_driver.get("https://search.bilibili.com/bangumi?"+parse.urlencode(para))
 
         print("Resolve searching result.")
         # print(search_driver.page_source)
@@ -104,7 +104,7 @@ class AnimeFinder:
             else:
                 bg = bg[2:]
 
-            season_ele = base.find_elements_by_xpath('ul[@class="so-episode"]/a[@class="list sm "]')
+            season_ele = base.find_elements_by_xpath('ul[@class="so-episode"]/a[contains(@class, "list")]')
             seasons = []
             for season in season_ele:
                 url = season.get_attribute("href")
@@ -121,7 +121,7 @@ class AnimeFinder:
         index_driver = self.__create_driver()
         para = self.__refine_para(para)
         print("Get anime index page... ")
-        index_driver.get("http://bangumi.bilibili.com/anime/index#"+parse.urlencode(para))#p=2&v=0&area=&stat=0&y=2017&q=0&tag=&t=1&sort=0")
+        index_driver.get("https://bangumi.bilibili.com/anime/index#"+parse.urlencode(para))#p=2&v=0&area=&stat=0&y=2017&q=0&tag=&t=1&sort=0")
         print(index_driver.current_url + " Successfully finished.")
         # print(index_driver.page_source)
         print("Resolve results.")
@@ -232,6 +232,7 @@ class AnimeFinder:
             refined["tag"] = "" # Tag = All
         else:
             refined["tag"] = para["tag"]
+        print(json.dumps(refined))
         return refined
 
     def __read_filter(self):

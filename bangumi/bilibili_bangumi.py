@@ -21,7 +21,7 @@ def main():
                                      "For other operation, please use corresponding module.")
     group1 = parser.add_mutually_exclusive_group()
     group1.add_argument("-f", "--fetch", action="store",
-                       help="Fetch video real URL from bangumi playing page like 'www.bilibili.com/video/av10366622'.",
+                       help="Fetch video real URL from bangumi playing page like 'www.bilibili.com/video/av10184012'.",
                        metavar="BANGUMI_URL")
     group1.add_argument("-d", "--download", action="store",
                        help="Download video from storage server by URL like 'http://cn-jsks2-dx.acgvideo.com/vg8/2/dc/16824755-1-hd.mp4?...'(parameters omitted)",
