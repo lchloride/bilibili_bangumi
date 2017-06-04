@@ -43,7 +43,7 @@ class Config:
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Interfaces of Configurations Operations.")
+    parser = argparse.ArgumentParser(description="Interfaces of Configuration Operations.")
     group2 = parser.add_mutually_exclusive_group()
     group2.add_argument("-a", "--all", action="store_true",
                         help="Display all properties.")

@@ -44,10 +44,14 @@ class Proxy:
         if l == 0:
             raise ProxyException("No available proxy")
 
-        if idx >= l or idx < 0:
+        # idx out of range
+        if idx >= l or idx < 1:
             idx = -1
+        # random idx OR modify idx to base 0
         if idx == -1:
             idx = randint(0, len(self.__instance.proxy_list)-1)
+        else:
+            idx -= 1
 
         ip = "%s:%d" % (self.__instance.proxy_list[idx]["ip"], self.__instance.proxy_list[idx]["port"])
         return ip
