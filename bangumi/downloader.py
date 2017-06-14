@@ -1,17 +1,43 @@
 # coding=utf-8
 import os
-from urllib import request
+import requests
+from threading import Timer
+from common.log import Log
 
+USER_AGENT = 'Mozilla/6.0 (iPhone; CPU iPhone OS 8_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/8.0 Mobile/10A5376e Safari/8536.25'
 
 class Downloader:
-    def __init__(self):
+    CMD_LINE = 1
+    GUI = 2
+
+    def __init__(self, mode=CMD_LINE, progress_bar_var=None, speed_str=None):
         self.last_per = -1
+        self.last_block_sec = 0
+        self.current_block = 0
+        self.progress = progress_bar_var
+        self.mode = mode
+        self.log = Log()
+        self.speed_str = speed_str
+
 
     def download(self, url, name, progess=True):
-        if progess:
-            request.urlretrieve(url, os.path.dirname(os.path.dirname(os.path.abspath("downloader.py")))+"\\"+name, self.progess_callback)
-        else:
-            request.urlretrieve(url, "../"+name)
+        self.log.write_log("Start to download video.", self.mode)
+        if self.speed_str is not None:
+            timer = Timer(1, self.speed)
+            timer.start()
+        r = requests.get(url, stream=True, headers={'User-Agent': USER_AGENT})
+        name = os.path.dirname(os.path.dirname(os.path.abspath("downloader.py")))+"\\"+name
+        with open(name, 'wb') as f:
+            l = int(r.headers["Content-Length"])
+            for i, chunk in enumerate(r.iter_content(chunk_size=4096)):
+                self.current_block = i
+                if chunk:
+                    if progess:
+                        self.progess_callback(i, 4096, l)
+                    f.write(chunk)
+        self.log.write_log("Write video successfully. The file locates at " + name, self.mode)
+
+        # request.urlretrieve(url, os.path.dirname(os.path.dirname(os.path.abspath("downloader.py")))+"\\"+name, self.progess_callback)
 
     def progess_callback(self, a, b, c):
         '''''回调函数 
@@ -24,9 +50,28 @@ class Downloader:
             per = 100
         if per != self.last_per:
             self.last_per = per
-            print('%.2f%%' % per)
+            if self.progress is None:
+                print('%.2f%%' % per)
+            else:
+                self.progress.set(per)
+
+    def speed(self):
+        blocks_size = (self.current_block-self.last_block_sec)*4
+        if blocks_size >= 1024*1024:
+            self.speed_str.set("Speed: %.2fGB/s" % (blocks_size/(1024*1024)))
+        elif blocks_size >= 1024:
+            self.speed_str.set("Speed: %.2fMB/s" % (blocks_size/1024))
+        else:
+            self.speed_str.set("Speed: %.2fKB/s" % blocks_size)
+        self.last_block_sec = self.current_block
+        if self.progress.get() < 100:
+            timer = Timer(1, self.speed)
+            timer.start()
+        else:
+            self.speed_str.set("Speed: --")
+
 
 
 if __name__ == '__main__':
-    Downloader().download('http://cn-bjsj-cc-v-03.acgvideo.com/vg3/f/47/3299010-1-hd.mp4?expires=1496343600&platform=pc&ssig=NBeOMOtPJsv0JlTc_l-ADA&oi=3698530067&nfa=zlb44/URExVDmluh6FGErg==&dynamic=1&hfa=2063801976',
-                          '13989517-1-hd.mp4')
+    Downloader().download('http://cn-jsz6-dx.acgvideo.com/vg5/4/33/392999-1-hd.mp4?expires=1497456000&platform=flash&ssig=cs5RYB4p3b40Bb8NbxWnGw&oi=1035938178&nfa=zlb44/URExVDmluh6FGErg==&dynamic=1&hfa=2071074710',
+                          '1.mp4')

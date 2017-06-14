@@ -64,8 +64,7 @@ def main():
             url_list = finder.get_video_url()
         for url in url_list:
             name = url[:url.rfind("?")]
-            name = name[url.rfind("/") + 1:]
-            print("Retrieve", name, url)
+            name = name[name.rfind("/") + 1:]
             Downloader().download(url, name)
 
 
