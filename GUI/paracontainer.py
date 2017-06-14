@@ -1,10 +1,12 @@
 from tkinter import *
+from tkinter.ttk import Progressbar
 
 from common.config import Config
 from common.proxy import Proxy
-import bangumi.finder
+import bangumi.downloader
 import tkinter.messagebox
 from bangumi.finder import Finder, PhantomJSFinder, ChromeFinder, FinderException
+from bangumi.downloader import Downloader
 from threading import Thread
 
 
@@ -12,6 +14,7 @@ class ParaContainer:
     NONE = 0
     DEFAULT = 1
     FETCHVIDEOURL = 2
+    DOWNLOAD = 3
 
     def __init__(self, frame, msg_listbox):
         self.display_type = self.NONE
@@ -22,6 +25,10 @@ class ParaContainer:
         self.__display_default()
         self.proxy = None
         self.msg_listbox = msg_listbox
+        self.progress = IntVar()
+        self.progress.set(0)
+        self.speed = StringVar()
+        self.speed.set("Speed: --")
 
     def display(self, display_type):
         self.__remove()
@@ -29,6 +36,8 @@ class ParaContainer:
             self.__display_default()
         elif display_type == self.FETCHVIDEOURL:
             self.__display_fetch_video_url()
+        elif display_type == self.DOWNLOAD:
+            self.__display_download()
 
     def __remove(self, frame=None):
         if frame is None:
@@ -37,6 +46,32 @@ class ParaContainer:
             if widget.winfo_children() is not None:
                 self.__remove(widget)
             widget.destroy()
+
+    def __display_download(self):
+        self.display_type = self.DOWNLOAD
+
+        self.frame.update()
+        para_label = Label(self.frame, text="Parameters", anchor=W,
+                           width=int(self.frame.winfo_width()))
+        para_label.pack()
+        url_frame = Frame(self.frame, width=self.frame.winfo_width())
+        url_frame.pack()
+        url_label = Label(url_frame, text="URL")
+        url_label.pack(side=LEFT)
+        url_label.update()
+        self.url_entry = url_entry = Entry(url_frame, width=self.frame.winfo_width() - url_label.winfo_width())
+        self.url_entry.pack(side=LEFT, fill=X)
+        speed_label = Label(self.frame, text="", anchor=W, textvariable=self.speed,
+                           width=int(self.frame.winfo_width()))
+        speed_label.pack(side=BOTTOM)
+        prog_bar = Progressbar(self.frame, orient=HORIZONTAL, length=self.frame.winfo_width(), mode="determinate",
+                               value=0, variable=self.progress)
+        prog_bar.pack(side=BOTTOM)
+        prog_bar.update()
+        exec_btn = Button(self.frame, text="Download", command=self.__download)
+        exec_btn.pack(side=BOTTOM)
+
+
 
     def __display_default(self):
         self.display_type = self.DEFAULT
@@ -134,6 +169,22 @@ class ParaContainer:
             # print(index)
             # result = finder.get_video_url(index)
             th = Thread(target=finder.get_video_url, args=(index, ))
+        else:
+            th = Thread(target=finder.get_video_url, args=(Finder.RANDOM_PROXY, ))
+
+        th.start()
+
+    def __download(self):
+        url = self.url_entry.get()
+        if url == "":
+            tkinter.messagebox.showerror("Error", "Should have URL")
+            return
+
+        downloader = Downloader(bangumi.downloader.Downloader.GUI, self.progress, self.speed)
+        name = url[:url.rfind("?")]
+        name = name[name.rfind("/") + 1:]
+        th = Thread(target=downloader.download, args=(url, name))
+
         th.start()
 
 

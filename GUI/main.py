@@ -35,7 +35,7 @@ class BiliBangumiUI:
         # Video menu
         self.videomenu = videomenu = Menu(menubar, tearoff=0)
         videomenu.add_command(label="Fetch URL", command=self.fetch_url)
-        videomenu.add_command(label="Download", command=hello)
+        videomenu.add_command(label="Download", command=self.download)
         videomenu.add_command(label="Fetch & Download", command=hello)
         menubar.add_cascade(label="Video", menu=videomenu)
 
@@ -90,6 +90,9 @@ class BiliBangumiUI:
 
     def fetch_url(self):
         self.container.display(ParaContainer.FETCHVIDEOURL)
+
+    def download(self):
+        self.container.display(ParaContainer.DOWNLOAD)
 
     def __change_lang(self):
         lang = self.lang.get()
