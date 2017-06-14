@@ -74,9 +74,12 @@ class BiliBangumiUI:
         # Listbox frame = listbox + scrollbar
         self.listboxframe = listboxframe = Frame(msgframe, width=root.winfo_width())
         self.scrollbar = Scrollbar(listboxframe, orient=VERTICAL)
+        self.hscrollbar = Scrollbar(listboxframe, orient=HORIZONTAL)
         self.listbox = Listbox(listboxframe, yscrollcommand=self.scrollbar.set, height=10, width=70)
         self.scrollbar.config(command=self.listbox.yview)
+        self.hscrollbar.config(command=self.listbox.xview)
         self.scrollbar.pack(side=RIGHT, fill=Y)
+        self.hscrollbar.pack(side=BOTTOM, fill=X)
         self.listbox.pack(side=LEFT, fill=BOTH, expand=1)
         self.listboxframe.pack()
         msgframe.pack()

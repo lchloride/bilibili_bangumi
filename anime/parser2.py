@@ -39,7 +39,7 @@ class Anime():
             if info_obj is None or info_obj["code"] != 0:
                 print("Cannot fetch information properly.")
                 return
-            if info_obj["result"]["allow_bp"] == "1":
+            if "allow_bp" in info_obj["result"].keys() and info_obj["result"]["allow_bp"] == "1":
                 data = "season_id=%s&page=1&pagesize=7" % anime_idx
 
                 req = request.Request('https://bangumi.bilibili.com/sponsor/rankweb/get_sponsor_total')
@@ -85,7 +85,10 @@ class Anime():
                     print("更新状态: 已完结 共%s话" % len(result["episodes"]))
                     print("开播时间:", result["pub_time"][0:10])
                 elif result["is_finish"] == "0" and result["is_started"] == 1:
-                    print("更新状态: 连载中 %s %s更新" % (days[result["weekday"]], result["pub_time"][-8:-3]))
+                    if result["weekday"] == "-1":
+                        print("更新状态: 连载中 更新未定")
+                    else:
+                        print("更新状态: 连载中 %s %s更新" % (days[result["weekday"]], result["pub_time"][-8:-3]))
                     print("开播时间:", result["pub_time"][0:10])
                 elif result["is_started"] == 0:
                     print("更新状态: 未开播")
@@ -103,7 +106,13 @@ class Anime():
                           % (result["actor"][i]["role"],
                              '一'*(role_len-len(result["actor"][i]["role"])+2),
                              result["actor"][i]["actor"]))
+
                 # Re-formatted introduction
+                brief_display = True
+                if (len(result) >= 4 and result["brief"][:-3] in result["evaluate"]) or \
+                        (result["brief"] in result["evaluate"]):
+                    brief_display = False
+
                 eva = result["evaluate"].split("\n")
                 result["evaluate"] = ""
                 for e in eva:
@@ -111,13 +120,16 @@ class Anime():
                         result["evaluate"] += e + "\n     "
                 result["evaluate"] = result["evaluate"][:-6]
                 print("介绍:", result["evaluate"])
+                if brief_display:
+                    print("     ", result["brief"])
                 if result["allow_bp"] == "1":
                     print("承包人数:", result["sponsors_count"])
-                staff = result["staff"].split("\n")
-                print("制作人员:")
-                for s in staff:
-                    if s != "":
-                        print("  ", s)
+                if "staff" in result.keys():
+                    staff = result["staff"].split("\n")
+                    print("制作人员:")
+                    for s in staff:
+                        if s != "":
+                            print("  ", s)
 
                 # Episodes
                 print("剧集列表:")
