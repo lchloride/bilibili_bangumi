@@ -63,9 +63,10 @@ def main():
         else:
             url_list = finder.get_video_url()
         for url in url_list:
+            print(url)
             name = url[:url.rfind("?")]
             name = name[name.rfind("/") + 1:]
-            Downloader().download(url, name)
+            Downloader().download(url, name, args.fd)
 
 
 if __name__ == '__main__':

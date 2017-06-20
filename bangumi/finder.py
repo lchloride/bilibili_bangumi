@@ -32,16 +32,17 @@ class Finder:
     CMD_LINE = 1
     GUI = 2
 
-    def __init__(self, bangumi_url="", mode=CMD_LINE):
+    def __init__(self, bangumi_url="", mode=CMD_LINE, result_list=None):
         self.bangumi_url = bangumi_url
         self.mode = mode
         self.log = Log()
+        self.result_list = result_list
 
     def set_bangumi_url(self, bangumi_url):
         self.bangumi_url = bangumi_url
 
     def get_video_url(self, proxy_idx=NO_PROXY):
-        pass
+        return self.bangumi_url
 
 
 class ChromeFinder(Finder):
@@ -104,17 +105,19 @@ class ChromeFinder(Finder):
 
         # Generate api URL by cracked player
         self.log.write_log("Start to get player page", self.mode)
-        player_driver.get("file:///" + os.path.realpath("cracked_player.html").replace('\\', '/') +
+        player_driver.get("file:///" + os.path.realpath("../bangumi/cracked_player.html").replace('\\', '/') +
                           "?" + parameters)
 
         time.sleep(10)
-
+        for entry in player_driver.get_log('browser'):
+            print(entry)
         api_source = player_driver.page_source
         self.log.write_log("Get player page successfully", self.mode)
-
+        # print(api_source)
         idx = api_source.find("""<div id="api_url">""")
         if idx == -1:
-            print(api_source)
+            player_driver.close()
+            api_driver.close()
             raise BadURL("Bad bangumi api URL")
         else:
             api_source = api_source[idx + 18:]
@@ -272,9 +275,11 @@ class PhantomJSFinder(Finder):
         self.log.write_log("Get player page successfully", self.mode)
 
         # Find URL of api
+
         idx = api_source.find("""<div id="api_url">""")
         if idx == -1:
             print(api_source)
+            print(player_driver.find_element_by_id("heimu").text)
             raise BadURL("Bad bangumi api URL")
         else:
             api_source = api_source[idx + 18:]
@@ -308,6 +313,8 @@ class PhantomJSFinder(Finder):
             self.log.write_log("Video URL(s):", 0x2)
             for url in url_list:
                 self.log.write_log(url, 0x2)
+            if self.result_list is not None:
+                self.result_list = url_list
         return url_list
 
 

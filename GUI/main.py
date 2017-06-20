@@ -36,7 +36,7 @@ class BiliBangumiUI:
         self.videomenu = videomenu = Menu(menubar, tearoff=0)
         videomenu.add_command(label="Fetch URL", command=self.fetch_url)
         videomenu.add_command(label="Download", command=self.download)
-        videomenu.add_command(label="Fetch & Download", command=hello)
+        videomenu.add_command(label="Fetch & Download", command=self.fetch_download)
         menubar.add_cascade(label="Video", menu=videomenu)
 
         # create more pulldown menus
@@ -86,6 +86,7 @@ class BiliBangumiUI:
         log.set_handler([self.listbox])
 
         self.container = ParaContainer(paraframe, self.listbox)
+        root.title(Language().get_string("TITLE", self.langcode[self.lang.get()]))
         root.mainloop()
 
     def fetch_url(self):
@@ -94,9 +95,12 @@ class BiliBangumiUI:
     def download(self):
         self.container.display(ParaContainer.DOWNLOAD)
 
+    def fetch_download(self):
+        self.container.display(ParaContainer.FETCHDOWNLOAD)
+
     def __change_lang(self):
         lang = self.lang.get()
-        print(lang)
+        # print(lang)
         #if str(lang) == Config().get_property("parameters", "lang"):
         Config().set_property("parameters", "lang", str(lang))
         self.__init__()

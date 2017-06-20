@@ -19,14 +19,15 @@ class Downloader:
         self.log = Log()
         self.speed_str = speed_str
 
-
-    def download(self, url, name, progess=True):
+    def download(self, url, name, referer='', origin='www.bilibili.com', progess=True):
         self.log.write_log("Start to download video.", self.mode)
         if self.speed_str is not None:
             timer = Timer(1, self.speed)
             timer.start()
-        r = requests.get(url, stream=True, headers={'User-Agent': USER_AGENT})
+        r = requests.get(url, stream=True,
+                         headers={'User-Agent': USER_AGENT, 'Referer': referer, 'Origin': origin})
         name = os.path.dirname(os.path.dirname(os.path.abspath("downloader.py")))+"\\"+name
+        print(r.headers)
         with open(name, 'wb') as f:
             l = int(r.headers["Content-Length"])
             for i, chunk in enumerate(r.iter_content(chunk_size=4096)):
@@ -73,5 +74,5 @@ class Downloader:
 
 
 if __name__ == '__main__':
-    Downloader().download('http://cn-jsz6-dx.acgvideo.com/vg5/4/33/392999-1-hd.mp4?expires=1497456000&platform=flash&ssig=cs5RYB4p3b40Bb8NbxWnGw&oi=1035938178&nfa=zlb44/URExVDmluh6FGErg==&dynamic=1&hfa=2071074710',
-                          '1.mp4')
+    Downloader().download('http://cn-sdyt-cu-v-02.acgvideo.com/vg3/2/c1/18691321-1-hd.mp4?expires=1497546300&platform=pc&ssig=AJRQXGxD54OqW7-iaaK0MA&oi=1873074864&nfa=zlb44/URExVDmluh6FGErg==&dynamic=1&hfa=2071050155',
+                          '18691321-1-hd.mp4')
