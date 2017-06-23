@@ -21,7 +21,7 @@ class Log(object):
             Log.__instance.string_pool = Queue(500)
             Log.__instance.handler_list = []
             Log.__instance.thread = BaseThread(display_log,
-                                               Log.__instance.string_pool,
+                                               (Log.__instance.string_pool,),
                                                'log_thread')
             '''Log.__instance.thread = threading.Thread(target=display_log,
                                                      args=(Log.__instance.string_pool, ))'''
