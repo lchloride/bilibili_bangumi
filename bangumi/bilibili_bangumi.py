@@ -24,8 +24,10 @@ def main():
                        help="Fetch video real URL from bangumi playing page like 'www.bilibili.com/video/av10184012'.",
                        metavar="BANGUMI_URL")
     group1.add_argument("-d", "--download", action="store",
-                       help="Download video from storage server by URL like 'http://cn-jsks2-dx.acgvideo.com/vg8/2/dc/16824755-1-hd.mp4?...'(parameters omitted)",
-                       metavar="VIDEO_URL")
+                       help="Download video from storage server by VIDEO_URL like "
+                            "'http://cn-jsks2-dx.acgvideo.com/vg8/2/dc/16824755-1-hd.mp4?...'(parameters omitted)."
+                            "Besides, BANGUMI_URL like 'www.bilibili.com/video/av10184012' is needed as well.",
+                       metavar=("VIDEO_URL", "BANGUMI_URL"), nargs=2)
     group1.add_argument("-fd", action="store",
                        help="Fetch and download video from bangumi playing page like 'www.bilibili.com/video/av10366622'.",
                        metavar="BANGUMI_URL")
@@ -50,9 +52,11 @@ def main():
             print(finder.get_video_url())
     elif args.download is not None:
         # print("download")
-        name = args.download[:args.download.rfind("?")]
-        name = name[args.download.rfind("/") + 1:]
-        downloader = Downloader().download(args.download, name)
+        video_url = args.download[0]
+        bangumi_url = args.download[1]
+        name = video_url[:video_url.rfind("?")]
+        name = name[name.rfind("/") + 1:]
+        downloader = Downloader().download(video_url, name, bangumi_url)
     elif args.fd is not None:
         # print("fetch & download")
         finder = create_finder(args.fd)

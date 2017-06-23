@@ -11,8 +11,11 @@ A tool for querying anime information and downloading bangumi videos especially 
 Python(>=3.2)
 
 Selenium(可使用pip安装)
-```bash 
+
+Requests(可使用pip安装)
+```bash
 pip install selenium
+pip install requests
 ```
 
 浏览器Kit，目前支持PhantomJS(推荐,下载：http://phantomjs.org/download.html )、ChromeDriver
@@ -87,14 +90,14 @@ bilibili_bangumi.py -f URL
 ```
 >URL为剧集的链接，形如https://bangumi.bilibili.com/anime/5997/play#103920 或 https://www.bilibili.com/video/av10184012 。
 
->获取的结果为视频的实际链接，可能有多个。
+>获取的结果为视频的实际链接，可能有多个。**根据最新的B站播放器，直接访问视频实际的链接已经不能获取或下载视频。**
 * 根据视频实际链接下载视频
 >使用方法：
 ```bash
-bilibili_bangumi.py -d URL
+bilibili_bangumi.py -d VIDEO_URL BANGUMI_URL
 ```
->URL为视频的实际链接，形如http://cn-jsks2-dx.acgvideo.com/vg8/2/dc/16824755-1-hd.mp4?...(参数略) 。视频将下载到项目根目录下。
-* 根据剧集链接一步下载视频
+>VIDEO_URL为视频的实际链接，形如http://cn-jsks2-dx.acgvideo.com/vg8/2/dc/16824755-1-hd.mp4?...(参数略) 。BANGUMI_URL为剧集的链接，形如https://bangumi.bilibili.com/anime/5997/play#103920 或 https://www.bilibili.com/video/av10184012 。视频将下载到项目根目录下。
+* 根据剧集链接一步下载视频(推荐)
 >本操作相当于前两个操作的结合。使用方法：
 ```bash
 bilibili_bangumi.py -fd URL
